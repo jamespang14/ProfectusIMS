@@ -41,6 +41,29 @@ def create_item(db: Session, item: schemas.ItemCreate):
         
     return db_item
 
+def create_items_bulk(db: Session, items: list[schemas.ItemCreate]):
+    db_items = []
+    for item in items:
+        db_item = models.Item(
+            title=item.title, 
+            description=item.description, 
+            price=item.price,
+            category=item.category,
+            quantity=item.quantity
+        )
+        db.add(db_item)
+        db_items.append(db_item)
+    
+    db.commit()
+    
+    # Refresh all and check for alerts
+    for db_item in db_items:
+        db.refresh(db_item)
+        if db_item.quantity == 0:
+            check_and_create_stock_alert(db, db_item.id, 0)
+            
+    return db_items
+
 def update_item(db: Session, item_id: int, item_update: schemas.ItemUpdate):
     db_item = get_item(db, item_id)
     if not db_item:
@@ -54,6 +77,24 @@ def update_item(db: Session, item_id: int, item_update: schemas.ItemUpdate):
     if 'quantity' in update_data:
         check_and_create_stock_alert(db, item_id, update_data['quantity'])
         
+        # Log quantity update
+        old_qty = db_item.quantity # This is actually the new quantity because we already committed. 
+        # To get the old quantity, we would have needed to fetch it before update. 
+        # Ideally we should refrain from fetching again if possible, but for simplicity let's stick to logging the change.
+        # Actually, let's just log the new quantity. The dashboard will reconstruct history by going backwards from current.
+        # Wait, to go backwards we need to know the *change* or the *previous value*.
+        # If we only know "Updated to 5", and current is 5, we know at time T it was 5. 
+        # If previous log says "Updated to 10" at T-1, we know it went 10 -> 5.
+        # So we just need to log "Updated quantity to X".
+        
+        create_audit_log(db, audit_schemas.AuditLogCreate(
+            action="UPDATE",
+            entity_type="ITEM",
+            entity_id=db_item.id,
+            user_id=1, # Default system/admin user for now as we don't have current_user here easily without refactoring
+            details=f"Updated quantity to {update_data['quantity']}"
+        ))
+
     return db_item
 
 def update_item_quantity(db: Session, item_id: int, quantity: int):
@@ -66,6 +107,15 @@ def update_item_quantity(db: Session, item_id: int, quantity: int):
     
     # Check and create alert if quantity is 0
     check_and_create_stock_alert(db, item_id, quantity)
+    
+    # Log quantity update
+    create_audit_log(db, audit_schemas.AuditLogCreate(
+        action="UPDATE",
+        entity_type="ITEM",
+        entity_id=db_item.id,
+        user_id=1, # Default system/admin user
+        details=f"Updated quantity to {quantity}"
+    ))
     
     return db_item
 

@@ -9,6 +9,7 @@ import Items from './pages/Items'
 import Users from './pages/Users'
 import Alerts from './pages/Alerts'
 import AuditLogs from './pages/AuditLogs'
+import Dashboard from './pages/Dashboard'
 
 function AppContent() {
   const location = useLocation();
@@ -25,6 +26,14 @@ function AppContent() {
       }}>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
           <Route 
             path="/items" 
             element={
@@ -57,7 +66,7 @@ function AppContent() {
               </ProtectedRoute>
             } 
           />
-          <Route path="/" element={<Navigate to="/items" replace />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </main>
     </div>

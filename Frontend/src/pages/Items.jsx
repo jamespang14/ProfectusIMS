@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import AuthContext from '../context/AuthProvider';
 import api from '../api/axios';
 import './Items.css';
+import BulkImportModal from '../components/BulkImportModal';
 
 const Items = () => {
     const [items, setItems] = useState([]);
@@ -20,6 +21,7 @@ const Items = () => {
     const [showQuantityModal, setShowQuantityModal] = useState(false);
     const [quantityItem, setQuantityItem] = useState(null);
     const [newQuantity, setNewQuantity] = useState(0);
+    const [showBulkImportModal, setShowBulkImportModal] = useState(false);
 
     useEffect(() => {
         fetchItems();
@@ -117,9 +119,14 @@ const Items = () => {
             <div className="items-header">
                 <h1>Inventory Items</h1>
                 {isAdmin() && (
-                    <button className="btn-primary" onClick={() => openModal()}>
-                        + Add Item
-                    </button>
+                    <div className="action-buttons" style={{ display: 'flex', gap: '1rem' }}>
+                        <button className="btn-secondary" onClick={() => setShowBulkImportModal(true)}>
+                            📂 Bulk Import
+                        </button>
+                        <button className="btn-primary" onClick={() => openModal()}>
+                            + Add Item
+                        </button>
+                    </div>
                 )}
             </div>
 
@@ -250,6 +257,13 @@ const Items = () => {
                         </form>
                     </div>
                 </div>
+            )}
+
+            {showBulkImportModal && (
+                <BulkImportModal 
+                    onClose={() => setShowBulkImportModal(false)} 
+                    onSuccess={fetchItems} 
+                />
             )}
         </div>
     );

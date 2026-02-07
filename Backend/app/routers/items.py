@@ -34,6 +34,32 @@ def create_item(
     
     return db_item
 
+@router.post("/bulk", response_model=list[schemas.Item])
+def create_items_bulk(
+    items: list[schemas.ItemCreate],
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user)
+):
+    if current_user.role != models.Role.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="Admin access required"
+        )
+        
+    db_items = crud.create_items_bulk(db=db, items=items)
+    
+    # Log the action
+    audit_log = audit_schemas.AuditLogCreate(
+        action="BULK_CREATE",
+        entity_type="ITEM",
+        entity_id=0, # Generic ID for bulk action or maybe 0?
+        user_id=current_user.id,
+        details=f"Bulk created {len(db_items)} items"
+    )
+    crud.create_audit_log(db, audit_log)
+    
+    return db_items
+
 @router.get("/", response_model=list[schemas.Item])
 def read_items(
     skip: int = 0, 

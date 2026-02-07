@@ -14,7 +14,7 @@ const Sidebar = () => {
     useEffect(() => {
         if (user) {
             fetchAlertCount();
-            const interval = setInterval(fetchAlertCount, 30000); // Poll every 30s
+            const interval = setInterval(fetchAlertCount, 10000); // Poll every 30s
             return () => clearInterval(interval);
         }
     }, [user]);
@@ -60,6 +60,13 @@ const Sidebar = () => {
             </div>
             
             <nav className="sidebar-nav">
+                <Link 
+                    to="/dashboard" 
+                    className={`nav-item ${location.pathname === '/dashboard' ? 'active' : ''}`}
+                >
+                    <span className="nav-icon">📊</span>
+                    {!isCollapsed && <span className="nav-text">Dashboard</span>}
+                </Link>
                 <Link 
                     to="/alerts" 
                     className={`nav-item ${location.pathname === '/alerts' ? 'active' : ''}`}
