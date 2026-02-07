@@ -28,11 +28,17 @@ def create_item(db: Session, item: schemas.ItemCreate):
         description=item.description, 
         # owner_id=item.owner_id,
         price=item.price,
-        category=item.category
+        category=item.category,
+        quantity=item.quantity
     )
     db.add(db_item)
     db.commit()
     db.refresh(db_item)
+    
+    # Check for logs/alerts
+    if item.quantity == 0:
+        check_and_create_stock_alert(db, db_item.id, 0)
+        
     return db_item
 
 def update_item(db: Session, item_id: int, item_update: schemas.ItemUpdate):
@@ -44,6 +50,10 @@ def update_item(db: Session, item_id: int, item_update: schemas.ItemUpdate):
         setattr(db_item, key, value)
     db.commit()
     db.refresh(db_item)
+    
+    if 'quantity' in update_data:
+        check_and_create_stock_alert(db, item_id, update_data['quantity'])
+        
     return db_item
 
 def update_item_quantity(db: Session, item_id: int, quantity: int):

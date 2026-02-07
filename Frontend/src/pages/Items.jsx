@@ -53,10 +53,15 @@ const Items = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            const dataToSubmit = {
+                ...formData,
+                quantity: formData.quantity === '' ? 0 : formData.quantity,
+                price: formData.price === '' ? 0 : formData.price
+            };
             if (editingItem) {
-                await api.put(`/items/${editingItem.id}`, formData);
+                await api.put(`/items/${editingItem.id}`, dataToSubmit);
             } else {
-                await api.post('/items/', formData);
+                await api.post('/items/', dataToSubmit);
             }
             setShowModal(false);
             setEditingItem(null);
@@ -94,7 +99,8 @@ const Items = () => {
     const handleQuantityUpdate = async (e) => {
         e.preventDefault();
         try {
-            await api.patch(`/items/${quantityItem.id}/quantity`, { quantity: newQuantity });
+            const qty = newQuantity === '' ? 0 : newQuantity;
+            await api.patch(`/items/${quantityItem.id}/quantity`, { quantity: qty });
             setShowQuantityModal(false);
             setQuantityItem(null);
             fetchItems();
@@ -193,21 +199,21 @@ const Items = () => {
                                         required
                                     />
                                 </div>
-                                {/* <div className="form-group">
+                                <div className="form-group">
                                     <label>Quantity</label>
                                     <input
                                         type="number"
                                         value={formData.quantity}
-                                        onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value)})}
+                                        onChange={(e) => setFormData({...formData, quantity: e.target.value === '' ? '' : parseInt(e.target.value)})}
                                         required
                                     />
-                                </div> */}
+                                </div>
                                 <div className="form-group">
                                     <label>Price</label>
                                     <input
                                         type="number"
                                         value={formData.price}
-                                        onChange={(e) => setFormData({...formData, price: parseInt(e.target.value)})}
+                                        onChange={(e) => setFormData({...formData, price: e.target.value === '' ? '' : parseInt(e.target.value)})}
                                         required
                                     />
                                 </div>

@@ -9,13 +9,14 @@ class ItemBase(BaseModel):
     # owner_id: int
 
 class ItemCreate(ItemBase):
-    pass
+    quantity: int = 0
 
 class ItemUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     price: Optional[int] = None
     category: Optional[str] = None
+    quantity: Optional[int] = None
 
 class ItemQuantityUpdate(BaseModel):
     quantity: int
