@@ -10,13 +10,25 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         if (token) {
-            // Optional: Fetch user details if needed, for now just trust token existence or decode it
-            // api.get('/users/me').then(res => setUser(res.data)).catch(() => logout())
-             localStorage.setItem('token', token);
+            localStorage.setItem('token', token);
+            // Fetch user details to get role
+            fetchUserDetails();
         } else {
             localStorage.removeItem('token');
+            setUser(null);
         }
     }, [token]);
+
+    const fetchUserDetails = async () => {
+        try {
+            const response = await api.get('/users/me');
+            setUser(response.data);
+        } catch (error) {
+            console.error("Failed to fetch user details", error);
+            // If fetching user fails, logout
+            logout();
+        }
+    };
 
     const login = async (email, password) => {
         setLoading(true);
@@ -26,13 +38,11 @@ export const AuthProvider = ({ children }) => {
             formData.append('password', password);
             
             const response = await api.post('/login', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' } // OAuth2 expects form data
+                headers: { 'Content-Type': 'multipart/form-data' }
             });
             
             const { access_token } = response.data;
             setToken(access_token);
-            // After setting token, we can optionally fetch user info or just set a basic state
-             setUser({ email }); 
             return true;
         } catch (error) {
             console.error("Login failed", error);
@@ -47,8 +57,16 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     };
 
+    const isAdmin = () => {
+        return user?.role === 'admin';
+    };
+
+    const isManager = () => {
+        return user?.role === 'manager' || user?.role === 'admin';
+    };
+
     return (
-        <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+        <AuthContext.Provider value={{ user, token, login, logout, loading, isAdmin, isManager }}>
             {children}
         </AuthContext.Provider>
     );

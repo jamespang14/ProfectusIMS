@@ -15,9 +15,7 @@ const Login = () => {
         setError('');
         try {
             await login(email, password);
-             // Navigate to dashboard or home after successful login
-             // For now, staying on login but maybe change text or redirect if I had a dashboard
-             alert("Login Successful! Token stored.");
+            navigate('/items');
         } catch (err) {
             setError("Invalid email or password.");
         }
