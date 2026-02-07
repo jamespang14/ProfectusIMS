@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from ..core import security
+from ..core import security, crud
 from ..dependencies import get_db, get_current_active_user
 from ..schemas import user as schemas
+from ..schemas import audit as audit_schemas
 from ..db import models
 
 router = APIRouter()
@@ -23,3 +24,72 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 @router.get("/me", response_model=schemas.User)
 async def read_users_me(current_user: models.User = Depends(get_current_active_user)):
     return current_user
+
+@router.get("/", response_model=list[schemas.User])
+def read_users(
+    skip: int = 0, 
+    limit: int = 100, 
+    db: Session = Depends(get_db), 
+    current_user: models.User = Depends(get_current_active_user)
+):
+    if current_user.role != models.Role.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+    users = db.query(models.User).offset(skip).limit(limit).all()
+    return users
+
+@router.patch("/{user_id}/role", response_model=schemas.User)
+def update_user_role(
+    user_id: int, 
+    role_update: schemas.UserRoleUpdate, 
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user)
+):
+    if current_user.role != models.Role.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+    
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    user.role = role_update.role
+    db.commit()
+    db.refresh(user)
+    
+    audit_log = audit_schemas.AuditLogCreate(
+        action="UPDATE_ROLE",
+        entity_type="USER",
+        entity_id=user.id,
+        user_id=current_user.id,
+        details=f"Updated role to {role_update.role}"
+    )
+    crud.create_audit_log(db, audit_log)
+    
+    return user
+
+@router.delete("/{user_id}", status_code=204)
+def delete_user(
+    user_id: int, 
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user)
+):
+    if current_user.role != models.Role.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+    
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    db.delete(user)
+    db.commit()
+    
+
+    audit_log = audit_schemas.AuditLogCreate(
+        action="DELETE",
+        entity_type="USER",
+        entity_id=user_id,
+        user_id=current_user.id,
+        details="Deleted user"
+    )
+    crud.create_audit_log(db, audit_log)
+    
+    return None

@@ -31,3 +31,17 @@ class Item(Base):
     category = Column(String, index=True, default="Uncategorized")
 
     # owner = relationship("User", back_populates="items")
+
+from sqlalchemy import DateTime
+from datetime import datetime
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    action = Column(String, index=True) # CREATE, UPDATE, DELETE
+    entity_type = Column(String, index=True) # ITEM, USER
+    entity_id = Column(Integer)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    details = Column(String, nullable=True)
