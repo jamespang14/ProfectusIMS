@@ -60,9 +60,9 @@ const Login = () => {
                         {loading ? 'Signing in...' : 'Sign In'}
                     </button>
                     
-                    <div className="form-footer">
+                    {/* <div className="form-footer">
                         <a href="#">Forgot password?</a>
-                    </div>
+                    </div> */}
                 </form>
             </div>
             

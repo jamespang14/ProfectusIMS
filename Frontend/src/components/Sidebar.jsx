@@ -12,7 +12,7 @@ const Sidebar = () => {
     const [alertCount, setAlertCount] = useState(0);
 
     useEffect(() => {
-        if (user && (isAdmin() || isManager())) {
+        if (user) {
             fetchAlertCount();
             const interval = setInterval(fetchAlertCount, 30000); // Poll every 30s
             return () => clearInterval(interval);
@@ -61,6 +61,16 @@ const Sidebar = () => {
             
             <nav className="sidebar-nav">
                 <Link 
+                    to="/alerts" 
+                    className={`nav-item ${location.pathname === '/alerts' ? 'active' : ''}`}
+                >
+                    <span className="nav-icon">🔔</span>
+                    {!isCollapsed && <span className="nav-text">Alerts</span>}
+                    {alertCount > 0 && (
+                        <span className="notification-badge">{alertCount}</span>
+                    )}
+                </Link>
+                <Link 
                     to="/items" 
                     className={`nav-item ${location.pathname === '/items' ? 'active' : ''}`}
                 >
@@ -75,19 +85,7 @@ const Sidebar = () => {
                         <span className="nav-icon">👥</span>
                         {!isCollapsed && <span className="nav-text">Users</span>}
                     </Link>
-                )}
-                {(isAdmin() || isManager()) && (
-                    <Link 
-                        to="/alerts" 
-                        className={`nav-item ${location.pathname === '/alerts' ? 'active' : ''}`}
-                    >
-                        <span className="nav-icon">🔔</span>
-                        {!isCollapsed && <span className="nav-text">Alerts</span>}
-                        {alertCount > 0 && (
-                            <span className="notification-badge">{alertCount}</span>
-                        )}
-                    </Link>
-                )}
+                )}                
             </nav>
 
             <div className="sidebar-footer">

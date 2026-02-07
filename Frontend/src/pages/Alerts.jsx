@@ -143,16 +143,16 @@ const Alerts = () => {
                                 </td>
                                 <td>{new Date(alert.created_at).toLocaleString()}</td>
                                 <td className="actions">
-                                    {alert.status === 'active' && (
+                                    {(isAdmin() || isManager()) && alert.status === 'active' && (
                                         <button className="btn-resolve" onClick={() => handleResolve(alert.id)}>
                                             Resolve
                                         </button>
                                     )}
-                                    {isAdmin() && (
+                                    {/* {isAdmin() && (
                                         <button className="btn-delete" onClick={() => handleDelete(alert.id)}>
                                             Delete
                                         </button>
-                                    )}
+                                    )} */}
                                 </td>
                             </tr>
                         ))}
