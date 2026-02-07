@@ -84,6 +84,17 @@ def create_alert(db: Session, alert: alert_schemas.AlertCreate, created_by: int 
     db.add(db_alert)
     db.commit()
     db.refresh(db_alert)
+
+    # Log create action
+    if created_by:
+        create_audit_log(db, audit_schemas.AuditLogCreate(
+            action="CREATE",
+            entity_type="ALERT",
+            entity_id=db_alert.id,
+            user_id=created_by,
+            details=f"Alert started: {alert.alert_type} - {alert.message}"
+        ))
+
     return db_alert
 
 def get_alerts(db: Session, skip: int = 0, limit: int = 100, status: str = None):
@@ -104,6 +115,16 @@ def resolve_alert(db: Session, alert_id: int, resolved_by: int):
     db_alert.resolved_by = resolved_by
     db.commit()
     db.refresh(db_alert)
+    
+    # Log resolve action
+    create_audit_log(db, audit_schemas.AuditLogCreate(
+        action="UPDATE",
+        entity_type="ALERT",
+        entity_id=db_alert.id,
+        user_id=resolved_by,
+        details="Alert resolved"
+    ))
+    
     return db_alert
 
 def delete_alert(db: Session, alert_id: int):
@@ -132,4 +153,13 @@ def check_and_create_stock_alert(db: Session, item_id: int, quantity: int):
                     alert_type=models.AlertType.OUT_OF_STOCK,
                     message=f"Item '{item.title}' is out of stock (quantity: 0)"
                 )
-                create_alert(db, alert)
+                alert_obj = create_alert(db, alert)
+                
+                # Log system auto-alert creation (using user_id=1 for admin/system)
+                create_audit_log(db, audit_schemas.AuditLogCreate(
+                    action="CREATE",
+                    entity_type="ALERT",
+                    entity_id=alert_obj.id,
+                    user_id=1, # Assigning to admin/system user
+                    details=f"System auto-alert: Item '{item.title}' is out of stock"
+                ))

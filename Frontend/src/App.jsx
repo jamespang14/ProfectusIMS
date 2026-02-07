@@ -8,6 +8,7 @@ import Login from './pages/Login'
 import Items from './pages/Items'
 import Users from './pages/Users'
 import Alerts from './pages/Alerts'
+import AuditLogs from './pages/AuditLogs'
 
 function AppContent() {
   const location = useLocation();
@@ -45,6 +46,14 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 <Alerts />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/audit-logs" 
+            element={
+              <ProtectedRoute adminOnly={true}>
+                <AuditLogs />
               </ProtectedRoute>
             } 
           />
