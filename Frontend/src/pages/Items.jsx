@@ -193,7 +193,7 @@ const Items = () => {
                                         required
                                     />
                                 </div>
-                                <div className="form-group">
+                                {/* <div className="form-group">
                                     <label>Quantity</label>
                                     <input
                                         type="number"
@@ -201,7 +201,7 @@ const Items = () => {
                                         onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value)})}
                                         required
                                     />
-                                </div>
+                                </div> */}
                                 <div className="form-group">
                                     <label>Price</label>
                                     <input

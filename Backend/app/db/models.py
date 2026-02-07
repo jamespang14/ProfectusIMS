@@ -45,3 +45,25 @@ class AuditLog(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     timestamp = Column(DateTime, default=datetime.utcnow)
     details = Column(String, nullable=True)
+
+class AlertType(str, enum.Enum):
+    LOW_STOCK = "low_stock"
+    OUT_OF_STOCK = "out_of_stock"
+    MANUAL = "manual"
+
+class AlertStatus(str, enum.Enum):
+    ACTIVE = "active"
+    RESOLVED = "resolved"
+
+class Alert(Base):
+    __tablename__ = "alerts"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    item_id = Column(Integer, ForeignKey("items.id"), nullable=True)
+    alert_type = Column(Enum(AlertType))
+    status = Column(Enum(AlertStatus), default=AlertStatus.ACTIVE)
+    message = Column(String)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    resolved_at = Column(DateTime, nullable=True)
+    resolved_by = Column(Integer, ForeignKey("users.id"), nullable=True)

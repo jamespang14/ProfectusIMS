@@ -7,6 +7,7 @@ import Sidebar from './components/Sidebar'
 import Login from './pages/Login'
 import Items from './pages/Items'
 import Users from './pages/Users'
+import Alerts from './pages/Alerts'
 
 function AppContent() {
   const location = useLocation();
@@ -36,6 +37,14 @@ function AppContent() {
             element={
               <ProtectedRoute adminOnly={true}>
                 <Users />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/alerts" 
+            element={
+              <ProtectedRoute>
+                <Alerts />
               </ProtectedRoute>
             } 
           />
