@@ -32,14 +32,20 @@ import math
 def read_users(
     page: int = 1, 
     size: int = 10, 
+    search: str = None,
     db: Session = Depends(get_db), 
     current_user: models.User = Depends(get_current_active_user)
 ):
     if current_user.role != models.Role.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
     skip = (page - 1) * size
-    total = db.query(models.User).count()
-    users = db.query(models.User).offset(skip).limit(limit=size).all()
+    
+    query = db.query(models.User)
+    if search:
+        query = query.filter(models.User.email.ilike(f"%{search}%"))
+        
+    total = query.count()
+    users = query.offset(skip).limit(limit=size).all()
     return {
         "items": users,
         "total": total,

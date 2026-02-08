@@ -19,9 +19,12 @@ def create_audit_log(db: Session, log: audit_schemas.AuditLogCreate):
 def get_item(db: Session, item_id: int):
     return db.query(models.Item).filter(models.Item.id == item_id).first()
 
-def get_items(db: Session, skip: int = 0, limit: int = 100):
-    total = db.query(models.Item).count()
-    items = db.query(models.Item).order_by(models.Item.last_updated.desc()).offset(skip).limit(limit).all()
+def get_items(db: Session, skip: int = 0, limit: int = 100, search: str = None):
+    query = db.query(models.Item)
+    if search:
+        query = query.filter(models.Item.title.ilike(f"%{search}%"))
+    total = query.count()
+    items = query.order_by(models.Item.last_updated.desc()).offset(skip).limit(limit).all()
     return items, total
 
 def create_item(db: Session, item: schemas.ItemCreate):
@@ -80,15 +83,6 @@ def update_item(db: Session, item_id: int, item_update: schemas.ItemUpdate):
         check_and_create_stock_alert(db, item_id, update_data['quantity'])
         
         # Log quantity update
-        old_qty = db_item.quantity # This is actually the new quantity because we already committed. 
-        # To get the old quantity, we would have needed to fetch it before update. 
-        # Ideally we should refrain from fetching again if possible, but for simplicity let's stick to logging the change.
-        # Actually, let's just log the new quantity. The dashboard will reconstruct history by going backwards from current.
-        # Wait, to go backwards we need to know the *change* or the *previous value*.
-        # If we only know "Updated to 5", and current is 5, we know at time T it was 5. 
-        # If previous log says "Updated to 10" at T-1, we know it went 10 -> 5.
-        # So we just need to log "Updated quantity to X".
-        
         create_audit_log(db, audit_schemas.AuditLogCreate(
             action="UPDATE",
             entity_type="ITEM",
@@ -121,9 +115,12 @@ def update_item_quantity(db: Session, item_id: int, quantity: int):
     
     return db_item
 
-def get_audit_logs(db: Session, skip: int = 0, limit: int = 100):
-    total = db.query(models.AuditLog).count()
-    items = db.query(models.AuditLog).order_by(models.AuditLog.timestamp.desc()).offset(skip).limit(limit).all()
+def get_audit_logs(db: Session, skip: int = 0, limit: int = 100, user_id: int = None):
+    query = db.query(models.AuditLog)
+    if user_id:
+        query = query.filter(models.AuditLog.user_id == user_id)
+    total = query.count()
+    items = query.order_by(models.AuditLog.timestamp.desc()).offset(skip).limit(limit).all()
     return items, total
 
 def get_audit_logs_by_user(db: Session, user_id: int, skip: int = 0, limit: int = 100):
@@ -167,10 +164,15 @@ def create_alert(db: Session, alert: alert_schemas.AlertCreate, created_by: int 
 
     return db_alert
 
-def get_alerts(db: Session, skip: int = 0, limit: int = 100, status: str = None):
+def get_alerts(db: Session, skip: int = 0, limit: int = 100, status: str = None, search: str = None):
     query = db.query(models.Alert)
     if status:
         query = query.filter(models.Alert.status == status)
+    
+    if search:
+        # Join with Items table to search by item title
+        query = query.join(models.Item, models.Alert.item_id == models.Item.id).filter(models.Item.title.ilike(f"%{search}%"))
+        
     total = query.count()
     items = query.order_by(models.Alert.created_at.desc()).offset(skip).limit(limit).all()
     return items, total

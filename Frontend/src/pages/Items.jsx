@@ -23,12 +23,22 @@ const Items = () => {
     const [quantityItem, setQuantityItem] = useState(null);
     const [newQuantity, setNewQuantity] = useState(0);
     const [showBulkImportModal, setShowBulkImportModal] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
     const pageSize = 10;
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            fetchItems(1);
+            setCurrentPage(1);
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm]);
 
     useEffect(() => {
         fetchItems(currentPage);
@@ -40,7 +50,8 @@ const Items = () => {
             const response = await api.get('/items/', {
                 params: {
                     page: page,
-                    size: pageSize
+                    size: pageSize,
+                    search: searchTerm
                 }
             });
             setItems(response.data.items);
@@ -149,6 +160,17 @@ const Items = () => {
                         </button>
                     </div>
                 )}
+            </div>
+            
+            <div className="search-bar-container" style={{ marginBottom: '1rem' }}>
+                <input
+                    type="text"
+                    placeholder="Search by title..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="search-input"
+                    style={{ padding: '0.5rem', width: '300px', borderRadius: '4px', border: '1px solid #ddd' }}
+                />
             </div>
 
             {error && <div className="error-banner">{error}</div>}

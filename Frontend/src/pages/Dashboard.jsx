@@ -192,35 +192,37 @@ const Dashboard = () => {
                 <h1>Dashboard</h1>
             </div>
 
-            <div className="dashboard-stats-grid">
-                <div className="stat-card">
-                    <span className="stat-value">{stats.summary.total_items}</span>
-                    <span className="stat-label">Total Items</span>
+            <div className="dashboard-content">
+                <div className="dashboard-stats-grid">
+                    <div className="stat-card">
+                        <span className="stat-value">{stats.summary.total_items}</span>
+                        <span className="stat-label">Total Items</span>
+                    </div>
+                    <div className="stat-card">
+                        <span className="stat-value" style={{ color: '#f87171' }}>{stats.summary.out_of_stock}</span>
+                        <span className="stat-label">Out of Stock</span>
+                    </div>
+                    <div className="stat-card">
+                        <span className="stat-value" style={{ color: '#fbbf24' }}>{stats.summary.low_stock}</span>
+                        <span className="stat-label">Low Stock</span>
+                    </div>
+                    <div className="stat-card">
+                        <span className="stat-value" style={{ color: '#60a5fa' }}>{stats.summary.active_alerts}</span>
+                        <span className="stat-label">Active Alerts</span>
+                    </div>
                 </div>
-                <div className="stat-card">
-                    <span className="stat-value" style={{ color: '#f87171' }}>{stats.summary.out_of_stock}</span>
-                    <span className="stat-label">Out of Stock</span>
-                </div>
-                <div className="stat-card">
-                    <span className="stat-value" style={{ color: '#fbbf24' }}>{stats.summary.low_stock}</span>
-                    <span className="stat-label">Low Stock</span>
-                </div>
-                <div className="stat-card">
-                    <span className="stat-value" style={{ color: '#60a5fa' }}>{stats.summary.active_alerts}</span>
-                    <span className="stat-label">Active Alerts</span>
-                </div>
-            </div>
 
-            <div className="chart-container">
-                {stats.item_stats.length > 0 ? (
-                    <div className="chart-wrapper">
-                        <Line options={options} data={chartData} />
-                    </div>
-                ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8' }}>
-                        Not enough data to display trends.
-                    </div>
-                )}
+                <div className="chart-container">
+                    {stats.item_stats.length > 0 ? (
+                        <div className="chart-wrapper">
+                            <Line options={options} data={chartData} />
+                        </div>
+                    ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8' }}>
+                            Not enough data to display trends.
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

@@ -7,6 +7,7 @@ const AuditLogs = () => {
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -15,18 +16,29 @@ const AuditLogs = () => {
     const pageSize = 20;
 
     useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            fetchLogs(1);
+            setCurrentPage(1);
+        }, 500);
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm]);
+
+    useEffect(() => {
         fetchLogs(currentPage);
     }, [currentPage]);
 
     const fetchLogs = async (page = 1) => {
         try {
             setLoading(true);
-            const response = await api.get('/audit-logs/', {
-                params: {
-                    page: page,
-                    size: pageSize
-                }
-            });
+            const params = {
+                page: page,
+                size: pageSize
+            };
+            if (searchTerm) {
+                params.user_id = searchTerm;
+            }
+
+            const response = await api.get('/audit-logs/', { params });
             setLogs(response.data.items);
             setTotalPages(response.data.pages);
             setTotalItems(response.data.total);
@@ -49,6 +61,17 @@ const AuditLogs = () => {
         <div className="audit-logs-container">
             <div className="audit-logs-header">
                 <h1>Audit Logs</h1>
+            </div>
+
+            <div className="search-bar-container" style={{ marginBottom: '1rem' }}>
+                <input
+                    type="number"
+                    placeholder="Search by User ID..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="search-input"
+                    style={{ padding: '0.5rem', width: '200px', borderRadius: '4px', border: '1px solid #ddd' }}
+                />
             </div>
 
             {error && <div className="error-banner">{error}</div>}

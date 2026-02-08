@@ -9,6 +9,7 @@ const Alerts = () => {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('active');
     const [showModal, setShowModal] = useState(false);
     const [formData, setFormData] = useState({
@@ -25,16 +26,30 @@ const Alerts = () => {
     const pageSize = 10;
 
     useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            fetchAlerts(1, statusFilter);
+            setCurrentPage(1);
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm, statusFilter]);
+
+    useEffect(() => {
         fetchAlerts(currentPage, statusFilter);
+    }, [currentPage]);
+
+    // Initial fetch for items is already done in useEffect below
+    useEffect(() => {
         fetchItems();
-    }, [currentPage, statusFilter]);
+    }, []);
 
     const fetchAlerts = async (page = 1, filter = statusFilter) => {
         try {
             setLoading(true);
             const params = {
                 page: page,
-                size: pageSize
+                size: pageSize,
+                search: searchTerm
             };
             if (filter) {
                 params.status = filter;
@@ -109,6 +124,17 @@ const Alerts = () => {
                         + Manual Alert
                     </button>
                 )}
+            </div>
+            
+            <div className="search-bar-container" style={{ marginBottom: '1rem' }}>
+                <input
+                    type="text"
+                    placeholder="Search by item title..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="search-input"
+                    style={{ padding: '0.5rem', width: '300px', borderRadius: '4px', border: '1px solid #ddd' }}
+                />
             </div>
 
             <div className="alerts-filters">
