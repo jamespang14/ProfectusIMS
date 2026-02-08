@@ -141,6 +141,8 @@ def get_audit_logs_by_item(db: Session, item_id: int, skip: int = 0, limit: int 
 from ..schemas import alerts as alert_schemas
 from datetime import datetime
 
+from .email import send_email
+
 def create_alert(db: Session, alert: alert_schemas.AlertCreate, created_by: int = None):
     db_alert = models.Alert(
         item_id=alert.item_id,
@@ -161,6 +163,14 @@ def create_alert(db: Session, alert: alert_schemas.AlertCreate, created_by: int 
             user_id=created_by,
             details=f"Alert started: {alert.alert_type} - {alert.message}"
         ))
+
+    # Trigger email notification
+    try:
+        subject = f"New Alert: {alert.alert_type}"
+        body = f"A new alert has been created:\n\nType: {alert.alert_type}\nMessage: {alert.message}\nItem ID: {alert.item_id}"
+        send_email(subject, body)
+    except Exception as e:
+        print(f"Failed to send email alert: {e}")
 
     return db_alert
 
