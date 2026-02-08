@@ -2,12 +2,17 @@
     padding: 2rem;
     max-width: 100%;
     width: 100%;
+    height: 100vh;
     box-sizing: border-box;
     margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .audit-logs-header {
     margin-bottom: 2rem;
+    flex-shrink: 0;
 }
 
 .audit-logs-header h1 {
@@ -17,6 +22,15 @@
     background-clip: text;
     -webkit-text-fill-color: transparent;
     margin: 0;
+}
+
+.table-container {
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    overflow: auto;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    flex: 1;
 }
 
 .audit-logs-table {

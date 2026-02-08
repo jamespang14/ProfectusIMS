@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import Papa from 'papaparse';
-import { CSVLink } from 'react-csv';
 import api from '../api/axios';
 import './BulkImportModal.css';
 
@@ -10,24 +9,6 @@ const BulkImportModal = ({ onClose, onSuccess }) => {
     const [parsedData, setParsedData] = useState([]);
     const [error, setError] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
-
-    const templateData = [
-        {
-            title: "Example Item",
-            description: "Details here",
-            price: 100,
-            quantity: 50,
-            category: "Electronics"
-        }
-    ];
-
-    const headers = [
-        { label: "title", key: "title" },
-        { label: "description", key: "description" },
-        { label: "price", key: "price" },
-        { label: "quantity", key: "quantity" },
-        { label: "category", key: "category" }
-    ];
 
     const onDrop = useCallback((acceptedFiles) => {
         const file = acceptedFiles[0];
