@@ -13,7 +13,7 @@ env.bak/
 venv.bak/
 
 # Database
-*.db
+# *.db
 *.sqlite3
 
 # OS

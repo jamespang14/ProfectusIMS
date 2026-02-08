@@ -31,6 +31,7 @@ The easiest way to run the application is using Docker Compose.
     ```bash
     docker-compose up --build
     ```
+    The application comes with a pre-populated demo database (`Backend/sql_app.db`).
 
 4.  **Access the Application**:
     - Frontend: `http://localhost`
