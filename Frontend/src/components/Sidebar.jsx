@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import AuthContext from '../context/AuthProvider';
 import api from '../api/axios';
 import './Sidebar.css';
+import TokenTimer from './TokenTimer';
 
 const Sidebar = () => {
     const { user, logout, isAdmin } = useContext(AuthContext);
@@ -116,6 +117,8 @@ const Sidebar = () => {
                     {!isCollapsed && <span>Logout</span>}
                 </button>
             </div>
+            
+            {!isCollapsed && <TokenTimer />}
         </div>
     );
 };
