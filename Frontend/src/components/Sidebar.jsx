@@ -103,6 +103,15 @@ const Sidebar = () => {
                         {!isCollapsed && <span className="nav-text">Audit Logs</span>}
                     </Link>
                 )}
+                {isAdmin() && (
+                    <Link 
+                        to="/reports" 
+                        className={`nav-item ${location.pathname === '/reports' ? 'active' : ''}`}
+                    >
+                        <span className="nav-icon">📈</span>
+                        {!isCollapsed && <span className="nav-text">Reports</span>}
+                    </Link>
+                )}
             </nav>
 
             <div className="sidebar-footer">

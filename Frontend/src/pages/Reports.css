@@ -1,4 +1,4 @@
-.dashboard-container {
+.reports-container {
     padding: 2rem;
     max-width: 100%;
     width: 100%;
@@ -10,7 +10,7 @@
     overflow: hidden;
 }
 
-.dashboard-header {
+.reports-header {
     margin-bottom: 2rem;
     flex-shrink: 0;
     display: flex;
@@ -18,7 +18,7 @@
     align-items: center;
 }
 
-.dashboard-header h1 {
+.reports-header h1 {
     font-size: 2rem;
     background: linear-gradient(135deg, #a78bfa 0%, #3b82f6 100%);
     -webkit-background-clip: text;
@@ -27,7 +27,7 @@
     margin: 0;
 }
 
-.dashboard-content {
+.reports-content {
     flex: 1;
     overflow-y: auto;
     display: flex;
@@ -37,14 +37,14 @@
 }
 
 /* Stats Grid */
-.dashboard-stats-grid {
+.stats-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 1.5rem;
     flex-shrink: 0;
 }
 
-.stat-card {
+.report-card {
     background: rgba(30, 41, 59, 0.7);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -55,24 +55,16 @@
     align-items: center;
     justify-content: center;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s, background-color 0.2s;
 }
 
-.stat-card:hover {
-    transform: translateY(-2px);
-    background: rgba(30, 41, 59, 0.85);
-    border-color: rgba(99, 102, 241, 0.3);
-}
-
-.stat-value {
+.report-value {
     font-size: 2.5rem;
     font-weight: 700;
     color: #f8fafc;
     margin-bottom: 0.5rem;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-.stat-label {
+.report-label {
     color: #94a3b8;
     font-size: 0.875rem;
     text-transform: uppercase;
@@ -81,34 +73,46 @@
 }
 
 /* Charts Section */
-.chart-container {
+.charts-section {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 1.5rem;
+    min-height: 400px;
+}
+
+.chart-card {
     background: rgba(30, 41, 59, 0.7);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 16px;
     padding: 1.5rem;
-    min-height: 400px;
-    box-sizing: border-box;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
+}
+
+.chart-card h3 {
+    color: #e2e8f0;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
 }
 
 .chart-wrapper {
     flex: 1;
     position: relative;
-    width: 100%;
-    min-height: 0; /* Important for flex child to shrink */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-/* Activity Log Section */
+/* Activity Log Table */
 .activity-section {
     background: rgba(30, 41, 59, 0.7);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 16px;
     padding: 1.5rem;
-    flex: 1; /* Expand to fill space if needed */
+    flex: 1;
     display: flex;
     flex-direction: column;
 }
@@ -124,19 +128,19 @@
     overflow-x: auto;
 }
 
-.dashboard-table {
+.report-table {
     width: 100%;
     border-collapse: collapse;
     color: #e2e8f0;
 }
 
-.dashboard-table th, .dashboard-table td {
+.report-table th, .report-table td {
     padding: 1rem;
     text-align: left;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.dashboard-table th {
+.report-table th {
     color: #94a3b8;
     font-weight: 600;
     text-transform: uppercase;
@@ -144,38 +148,29 @@
     letter-spacing: 0.05em;
 }
 
-.dashboard-table tr:hover td {
+.report-table tr:hover td {
     background: rgba(255, 255, 255, 0.02);
 }
 
-.error-banner {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid #f87171;
-    color: #f87171;
-    padding: 1rem;
-    border-radius: 12px;
-    margin-bottom: 1rem;
-}
-
-.loading {
+.loading, .error-message {
     text-align: center;
     padding: 3rem;
-    font-size: 1.2rem;
     color: #94a3b8;
+    font-size: 1.2rem;
 }
 
-/* Responsive */
+.error-message {
+    color: #f87171;
+}
+
 @media (max-width: 1024px) {
-    .dashboard-stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 640px) {
-    .dashboard-stats-grid {
+    .charts-section {
         grid-template-columns: 1fr;
     }
-    .chart-container {
-        min-height: 300px;
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
     }
 }
