@@ -1,21 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
 import './AuditLogs.css';
+import Pagination from '../components/Pagination';
 
 const AuditLogs = () => {
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    useEffect(() => {
-        fetchLogs();
-    }, []);
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+    const pageSize = 20;
 
-    const fetchLogs = async () => {
+    useEffect(() => {
+        fetchLogs(currentPage);
+    }, [currentPage]);
+
+    const fetchLogs = async (page = 1) => {
         try {
             setLoading(true);
-            const response = await api.get('/audit-logs/');
-            setLogs(response.data);
+            const response = await api.get('/audit-logs/', {
+                params: {
+                    page: page,
+                    size: pageSize
+                }
+            });
+            setLogs(response.data.items);
+            setTotalPages(response.data.pages);
+            setTotalItems(response.data.total);
+            setError('');
         } catch (err) {
             setError('Failed to fetch audit logs');
             console.error(err);
@@ -25,10 +40,10 @@ const AuditLogs = () => {
     };
 
     const formatAction = (action) => {
-        return action.toLowerCase();
+        return action ? action.toLowerCase() : '';
     };
 
-    if (loading) return <div className="loading">Loading audit logs...</div>;
+    if (loading && logs.length === 0) return <div className="loading">Loading audit logs...</div>;
 
     return (
         <div className="audit-logs-container">
@@ -76,6 +91,13 @@ const AuditLogs = () => {
                         No audit logs found.
                     </div>
                 )}
+                <Pagination 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    pageSize={pageSize}
+                    onPageChange={setCurrentPage}
+                />
             </div>
         </div>
     );
