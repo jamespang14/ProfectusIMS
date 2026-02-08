@@ -3,6 +3,7 @@ import AuthContext from '../context/AuthProvider';
 import api from '../api/axios';
 import './Items.css';
 import BulkImportModal from '../components/BulkImportModal';
+import Pagination from '../components/Pagination';
 
 const Items = () => {
     const [items, setItems] = useState([]);
@@ -23,15 +24,29 @@ const Items = () => {
     const [newQuantity, setNewQuantity] = useState(0);
     const [showBulkImportModal, setShowBulkImportModal] = useState(false);
 
-    useEffect(() => {
-        fetchItems();
-    }, []);
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+    const pageSize = 20;
 
-    const fetchItems = async () => {
+    useEffect(() => {
+        fetchItems(currentPage);
+    }, [currentPage]);
+
+    const fetchItems = async (page = 1) => {
         try {
             setLoading(true);
-            const response = await api.get('/items/');
-            setItems(response.data);
+            const response = await api.get('/items/', {
+                params: {
+                    page: page,
+                    size: pageSize
+                }
+            });
+            setItems(response.data.items);
+            setTotalPages(response.data.pages);
+            setTotalItems(response.data.total);
+            setError('');
         } catch (err) {
             setError('Failed to fetch items');
             console.error(err);
@@ -45,7 +60,7 @@ const Items = () => {
         
         try {
             await api.delete(`/items/${id}`);
-            fetchItems();
+            fetchItems(currentPage);
         } catch (err) {
             setError('Failed to delete item');
             console.error(err);
@@ -68,7 +83,7 @@ const Items = () => {
             setShowModal(false);
             setEditingItem(null);
             setFormData({ title: '', description: '', quantity: 0, price: 0, category: '' });
-            fetchItems();
+            fetchItems(currentPage);
         } catch (err) {
             setError('Failed to save item');
             console.error(err);
@@ -105,24 +120,30 @@ const Items = () => {
             await api.patch(`/items/${quantityItem.id}/quantity`, { quantity: qty });
             setShowQuantityModal(false);
             setQuantityItem(null);
-            fetchItems();
+            fetchItems(currentPage);
         } catch (err) {
             setError('Failed to update quantity');
             console.error(err);
         }
     };
 
-    if (loading) return <div className="loading">Loading items...</div>;
+    const handleBulkSuccess = () => {
+        fetchItems(currentPage);
+    };
+
+    if (loading && items.length === 0) return <div className="loading">Loading items...</div>;
 
     return (
         <div className="items-container">
             <div className="items-header">
                 <h1>Inventory Items</h1>
-                {isAdmin() && (
+                {(isAdmin() || isManager()) && (
                     <div className="action-buttons" style={{ display: 'flex', gap: '1rem' }}>
-                        <button className="btn-secondary" onClick={() => setShowBulkImportModal(true)}>
-                            📂 Bulk Import
-                        </button>
+                        {isAdmin() && (
+                            <button className="btn-secondary" onClick={() => setShowBulkImportModal(true)}>
+                                📂 Bulk Import
+                            </button>
+                        )}
                         <button className="btn-primary" onClick={() => openModal()}>
                             + Add Item
                         </button>
@@ -172,6 +193,18 @@ const Items = () => {
                         ))}
                     </tbody>
                 </table>
+                {items.length === 0 && !loading && (
+                    <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
+                        No items found.
+                    </div>
+                )}
+                <Pagination 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    pageSize={pageSize}
+                    onPageChange={setCurrentPage}
+                />
             </div>
 
             {showModal && (
@@ -262,7 +295,7 @@ const Items = () => {
             {showBulkImportModal && (
                 <BulkImportModal 
                     onClose={() => setShowBulkImportModal(false)} 
-                    onSuccess={fetchItems} 
+                    onSuccess={handleBulkSuccess} 
                 />
             )}
         </div>

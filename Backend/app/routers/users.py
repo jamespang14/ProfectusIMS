@@ -25,17 +25,28 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 async def read_users_me(current_user: models.User = Depends(get_current_active_user)):
     return current_user
 
-@router.get("/", response_model=list[schemas.User])
+from ..schemas.common import PaginatedResponse
+import math
+
+@router.get("/", response_model=PaginatedResponse[schemas.User])
 def read_users(
-    skip: int = 0, 
-    limit: int = 100, 
+    page: int = 1, 
+    size: int = 20, 
     db: Session = Depends(get_db), 
     current_user: models.User = Depends(get_current_active_user)
 ):
     if current_user.role != models.Role.ADMIN:
         raise HTTPException(status_code=403, detail="Admin privileges required")
-    users = db.query(models.User).offset(skip).limit(limit).all()
-    return users
+    skip = (page - 1) * size
+    total = db.query(models.User).count()
+    users = db.query(models.User).offset(skip).limit(limit=size).all()
+    return {
+        "items": users,
+        "total": total,
+        "page": page,
+        "size": size,
+        "pages": math.ceil(total / size) if size > 0 else 0
+    }
 
 @router.patch("/{user_id}/role", response_model=schemas.User)
 def update_user_role(

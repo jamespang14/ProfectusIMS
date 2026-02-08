@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import AuthContext from '../context/AuthProvider';
 import api from '../api/axios';
 import './Alerts.css';
+import Pagination from '../components/Pagination';
 
 const Alerts = () => {
     const [alerts, setAlerts] = useState([]);
@@ -17,16 +18,33 @@ const Alerts = () => {
     });
     const { isAdmin, isManager } = useContext(AuthContext);
 
-    useEffect(() => {
-        fetchAlerts();
-        fetchItems();
-    }, [statusFilter]);
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+    const pageSize = 20;
 
-    const fetchAlerts = async () => {
+    useEffect(() => {
+        fetchAlerts(currentPage, statusFilter);
+        fetchItems();
+    }, [currentPage, statusFilter]);
+
+    const fetchAlerts = async (page = 1, filter = statusFilter) => {
         try {
             setLoading(true);
-            const response = await api.get('/alerts/', { params: { status: statusFilter } });
-            setAlerts(response.data);
+            const params = {
+                page: page,
+                size: pageSize
+            };
+            if (filter) {
+                params.status = filter;
+            }
+            
+            const response = await api.get('/alerts/', { params });
+            setAlerts(response.data.items);
+            setTotalPages(response.data.pages);
+            setTotalItems(response.data.total);
+            setError('');
         } catch (err) {
             setError('Failed to fetch alerts');
             console.error(err);
@@ -37,8 +55,14 @@ const Alerts = () => {
 
     const fetchItems = async () => {
         try {
-            const response = await api.get('/items/');
-            setItems(response.data);
+            // Fetching all items for dropdown, might need separate non-paginated endpoint or large limit
+            // For now, assuming standard fetch is okay or we implement search later.
+            // Using a large limit or relying on current endpoint which now paginates?
+            // If /items/ is paginated by default, we only get first 20. 
+            // We should arguably have an autocomplete or search for item selection.
+            // For simplicity in this task, let's request a larger size for dropdowns if possible, or leave as is.
+            const response = await api.get('/items/', { params: { size: 100 } }); 
+            setItems(response.data.items);
         } catch (err) {
             console.error('Failed to fetch items', err);
         }
@@ -47,19 +71,9 @@ const Alerts = () => {
     const handleResolve = async (id) => {
         try {
             await api.patch(`/alerts/${id}/resolve`);
-            fetchAlerts();
+            fetchAlerts(currentPage, statusFilter);
         } catch (err) {
             setError('Failed to resolve alert');
-        }
-    };
-
-    const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this alert?')) return;
-        try {
-            await api.delete(`/alerts/${id}`);
-            fetchAlerts();
-        } catch (err) {
-            setError('Failed to delete alert');
         }
     };
 
@@ -72,10 +86,16 @@ const Alerts = () => {
             await api.post('/alerts/', data);
             setShowModal(false);
             setFormData({ item_id: '', alert_type: 'manual', message: '' });
-            fetchAlerts();
+            fetchAlerts(1, statusFilter); // Reset to first page
+            setCurrentPage(1);
         } catch (err) {
             setError('Failed to create alert');
         }
+    };
+
+    const handleFilterChange = (newFilter) => {
+        setStatusFilter(newFilter);
+        setCurrentPage(1);
     };
 
     if (loading && alerts.length === 0) return <div className="loading">Loading alerts...</div>;
@@ -94,19 +114,19 @@ const Alerts = () => {
             <div className="alerts-filters">
                 <button 
                     className={`filter-btn ${statusFilter === 'active' ? 'active' : ''}`}
-                    onClick={() => setStatusFilter('active')}
+                    onClick={() => handleFilterChange('active')}
                 >
                     Active
                 </button>
                 <button 
                     className={`filter-btn ${statusFilter === 'resolved' ? 'active' : ''}`}
-                    onClick={() => setStatusFilter('resolved')}
+                    onClick={() => handleFilterChange('resolved')}
                 >
                     Resolved
                 </button>
                 <button 
                     className={`filter-btn ${statusFilter === '' ? 'active' : ''}`}
-                    onClick={() => setStatusFilter('')}
+                    onClick={() => handleFilterChange('')}
                 >
                     All
                 </button>
@@ -148,11 +168,6 @@ const Alerts = () => {
                                             Resolve
                                         </button>
                                     )}
-                                    {/* {isAdmin() && (
-                                        <button className="btn-delete" onClick={() => handleDelete(alert.id)}>
-                                            Delete
-                                        </button>
-                                    )} */}
                                 </td>
                             </tr>
                         ))}
@@ -163,6 +178,13 @@ const Alerts = () => {
                         No alerts found.
                     </div>
                 )}
+                <Pagination 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    pageSize={pageSize}
+                    onPageChange={setCurrentPage}
+                />
             </div>
 
             {showModal && (

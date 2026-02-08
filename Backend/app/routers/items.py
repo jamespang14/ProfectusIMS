@@ -60,16 +60,25 @@ def create_items_bulk(
     
     return db_items
 
-@router.get("/", response_model=list[schemas.Item])
+from ..schemas.common import PaginatedResponse
+import math
+
+@router.get("/", response_model=PaginatedResponse[schemas.Item])
 def read_items(
-    skip: int = 0, 
-    limit: int = 100, 
+    page: int = 1, 
+    size: int = 20, 
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_active_user)
 ):
-    # All roles can view
-    items = crud.get_items(db, skip=skip, limit=limit)
-    return items
+    skip = (page - 1) * size
+    items, total = crud.get_items(db, skip=skip, limit=size)
+    return {
+        "items": items,
+        "total": total,
+        "page": page,
+        "size": size,
+        "pages": math.ceil(total / size) if size > 0 else 0
+    }
 
 @router.get("/{item_id}", response_model=schemas.Item)
 def read_item(

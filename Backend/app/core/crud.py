@@ -20,7 +20,9 @@ def get_item(db: Session, item_id: int):
     return db.query(models.Item).filter(models.Item.id == item_id).first()
 
 def get_items(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Item).offset(skip).limit(limit).all()
+    total = db.query(models.Item).count()
+    items = db.query(models.Item).offset(skip).limit(limit).all()
+    return items, total
 
 def create_item(db: Session, item: schemas.ItemCreate):
     db_item = models.Item(
@@ -120,15 +122,23 @@ def update_item_quantity(db: Session, item_id: int, quantity: int):
     return db_item
 
 def get_audit_logs(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.AuditLog).order_by(models.AuditLog.timestamp.desc()).offset(skip).limit(limit).all()
+    total = db.query(models.AuditLog).count()
+    items = db.query(models.AuditLog).order_by(models.AuditLog.timestamp.desc()).offset(skip).limit(limit).all()
+    return items, total
 
 def get_audit_logs_by_user(db: Session, user_id: int, skip: int = 0, limit: int = 100):
-    return db.query(models.AuditLog).filter(models.AuditLog.user_id == user_id).order_by(models.AuditLog.timestamp.desc()).offset(skip).limit(limit).all()
+    query = db.query(models.AuditLog).filter(models.AuditLog.user_id == user_id)
+    total = query.count()
+    items = query.order_by(models.AuditLog.timestamp.desc()).offset(skip).limit(limit).all()
+    return items, total
 
 def get_audit_logs_by_item(db: Session, item_id: int, skip: int = 0, limit: int = 100):
     # Note: entity_id is generic, but here we assume entity_type='ITEM' could be filtered if needed.
     # For now, just filtering by entity_id and entity_type="ITEM" is safer to avoid collisions if user_ids and item_ids overlap.
-    return db.query(models.AuditLog).filter(models.AuditLog.entity_id == item_id, models.AuditLog.entity_type == "ITEM").order_by(models.AuditLog.timestamp.desc()).offset(skip).limit(limit).all()
+    query = db.query(models.AuditLog).filter(models.AuditLog.entity_id == item_id, models.AuditLog.entity_type == "ITEM")
+    total = query.count()
+    items = query.order_by(models.AuditLog.timestamp.desc()).offset(skip).limit(limit).all()
+    return items, total
 
 # Alert CRUD operations
 from ..schemas import alerts as alert_schemas
@@ -161,7 +171,9 @@ def get_alerts(db: Session, skip: int = 0, limit: int = 100, status: str = None)
     query = db.query(models.Alert)
     if status:
         query = query.filter(models.Alert.status == status)
-    return query.order_by(models.Alert.created_at.desc()).offset(skip).limit(limit).all()
+    total = query.count()
+    items = query.order_by(models.Alert.created_at.desc()).offset(skip).limit(limit).all()
+    return items, total
 
 def get_alert(db: Session, alert_id: int):
     return db.query(models.Alert).filter(models.Alert.id == alert_id).first()

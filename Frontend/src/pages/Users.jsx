@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
 import './Users.css';
+import Pagination from '../components/Pagination';
 
 const Users = () => {
     const [users, setUsers] = useState([]);
@@ -10,15 +11,29 @@ const Users = () => {
     const [selectedUser, setSelectedUser] = useState(null);
     const [newRole, setNewRole] = useState('');
 
-    useEffect(() => {
-        fetchUsers();
-    }, []);
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+    const pageSize = 20;
 
-    const fetchUsers = async () => {
+    useEffect(() => {
+        fetchUsers(currentPage);
+    }, [currentPage]);
+
+    const fetchUsers = async (page = 1) => {
         try {
             setLoading(true);
-            const response = await api.get('/users/');
-            setUsers(response.data);
+            const response = await api.get('/users/', {
+                params: {
+                    page: page,
+                    size: pageSize
+                }
+            });
+            setUsers(response.data.items);
+            setTotalPages(response.data.pages);
+            setTotalItems(response.data.total);
+            setError('');
         } catch (err) {
             setError('Failed to fetch users');
             console.error(err);
@@ -32,7 +47,7 @@ const Users = () => {
         
         try {
             await api.delete(`/users/${userId}`);
-            fetchUsers();
+            fetchUsers(currentPage);
         } catch (err) {
             setError('Failed to delete user');
             console.error(err);
@@ -46,7 +61,7 @@ const Users = () => {
             setShowModal(false);
             setSelectedUser(null);
             setNewRole('');
-            fetchUsers();
+            fetchUsers(currentPage);
         } catch (err) {
             setError('Failed to update role');
             console.error(err);
@@ -59,7 +74,7 @@ const Users = () => {
         setShowModal(true);
     };
 
-    if (loading) return <div className="loading">Loading users...</div>;
+    if (loading && users.length === 0) return <div className="loading">Loading users...</div>;
 
     return (
         <div className="users-container">
@@ -102,6 +117,18 @@ const Users = () => {
                         ))}
                     </tbody>
                 </table>
+                {users.length === 0 && !loading && (
+                    <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
+                        No users found.
+                    </div>
+                )}
+                <Pagination 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    pageSize={pageSize}
+                    onPageChange={setCurrentPage}
+                />
             </div>
 
             {showModal && (
@@ -117,9 +144,9 @@ const Users = () => {
                                     onChange={(e) => setNewRole(e.target.value)}
                                     required
                                 >
-                                    <option value="viewer">Viewer</option>
-                                    <option value="manager">Manager</option>
-                                    <option value="admin">Admin</option>
+                                    <option value="VIEWER">Viewer</option>
+                                    <option value="MANAGER">Manager</option>
+                                    <option value="ADMIN">Admin</option>
                                 </select>
                             </div>
                             <div className="modal-actions">

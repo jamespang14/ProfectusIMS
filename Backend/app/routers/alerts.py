@@ -5,21 +5,24 @@ from ..dependencies import get_db, get_current_user
 from ..db import models
 from ..schemas import alerts as schemas
 from ..core import crud
+from ..schemas.common import PaginatedResponse
+import math
 
 router = APIRouter()
 
-@router.get("/", response_model=List[schemas.AlertWithDetails])
+@router.get("/", response_model=PaginatedResponse[schemas.AlertWithDetails])
 def read_alerts(
     status: Optional[str] = None,
-    skip: int = 0,
-    limit: int = 100,
+    page: int = 1,
+    size: int = 20,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
     # if current_user.role not in [models.Role.ADMIN, models.Role.MANAGER]:
     #     raise HTTPException(status_code=403, detail="Not authorized")
     
-    db_alerts = crud.get_alerts(db, skip=skip, limit=limit, status=status)
+    skip = (page - 1) * size
+    db_alerts, total = crud.get_alerts(db, skip=skip, limit=size, status=status)
     
     # Enhance alerts with details
     results = []
@@ -46,7 +49,13 @@ def read_alerts(
             resolved_by_email=resolved_by_email
         ))
     
-    return results
+    return {
+        "items": results,
+        "total": total,
+        "page": page,
+        "size": size,
+        "pages": math.ceil(total / size) if size > 0 else 0
+    }
 
 @router.post("/", response_model=schemas.Alert)
 def create_manual_alert(
