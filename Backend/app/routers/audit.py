@@ -15,6 +15,7 @@ router = APIRouter()
 def read_audit_logs(
     page: int = 1, 
     size: int = 20, 
+    user_id: int = None,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_active_user)
 ):
@@ -24,7 +25,7 @@ def read_audit_logs(
             detail="Admin access required"
         )
     skip = (page - 1) * size
-    logs, total = crud.get_audit_logs(db, skip=skip, limit=size)
+    logs, total = crud.get_audit_logs(db, skip=skip, limit=size, user_id=user_id)
     return {
         "items": logs,
         "total": total,

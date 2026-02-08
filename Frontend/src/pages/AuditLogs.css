@@ -36,6 +36,7 @@
 .audit-logs-table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
 }
 
 .audit-logs-table thead {

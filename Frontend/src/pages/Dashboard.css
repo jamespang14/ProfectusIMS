@@ -5,14 +5,23 @@
     height: 100vh; /* Full viewport height */
     box-sizing: border-box;
     margin: 0 auto;
-    display: grid;
-    grid-template-rows: auto auto 1fr; /* Header, Stats, Chart */
-    gap: 1.5rem;
-    overflow-y: auto; /* Allow scroll if content is too tall on small screens */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .dashboard-header {
-    margin-bottom: 0; /* Managed by grid gap */
+    margin-bottom: 2rem;
+    flex-shrink: 0;
+}
+
+.dashboard-content {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding-bottom: 2rem; /* Bottom spacing for scroll */
 }
 
 .dashboard-header h1 {
@@ -28,7 +37,7 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr); /* 4 columns on the first row */
     gap: 1.5rem;
-    margin-bottom: 0; /* Managed by grid gap */
+    flex-shrink: 0;
 }
 
 /* Responsive columns for stats */
@@ -86,9 +95,8 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 16px;
     padding: 2rem;
-    /* Height handled by grid (1fr) */
-    height: 100%; 
-    min-height: 0; /* Important for grid/flex nesting */
+    flex: 1; /* Take remaining height */
+    min-height: 400px; /* Minimum height ensures not squashed */
     box-sizing: border-box;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     position: relative;
@@ -119,7 +127,7 @@
     }
     
     .chart-container {
-        height: 300px;
+        min-height: 300px;
         padding: 1rem;
     }
 }

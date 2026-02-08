@@ -66,12 +66,13 @@ import math
 @router.get("/", response_model=PaginatedResponse[schemas.Item])
 def read_items(
     page: int = 1, 
-    size: int = 20, 
+    size: int = 10, 
+    search: str = None,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_active_user)
 ):
     skip = (page - 1) * size
-    items, total = crud.get_items(db, skip=skip, limit=size)
+    items, total = crud.get_items(db, skip=skip, limit=size, search=search)
     return {
         "items": items,
         "total": total,

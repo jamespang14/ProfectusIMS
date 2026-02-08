@@ -98,7 +98,9 @@
 
 .items-table {
     width: 100%;
+    min-width: 1000px;
     border-collapse: collapse;
+    table-layout: fixed;
 }
 
 .items-table thead {
@@ -113,7 +115,18 @@
     text-transform: uppercase;
     font-size: 0.875rem;
     letter-spacing: 0.05em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
+
+/* Column Widths */
+.items-table th:nth-child(1) { width: 15%; } /* Title */
+.items-table th:nth-child(2) { width: 25%; } /* Description */
+.items-table th:nth-child(3) { width: 12%; } /* Category */
+.items-table th:nth-child(4) { width: 10%; } /* Quantity */
+.items-table th:nth-child(5) { width: 8%; }  /* Price */
+.items-table th:last-child   { width: 30%; } /* Actions */
 
 .items-table tbody tr {
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -127,6 +140,9 @@
 .items-table td {
     padding: 1rem;
     color: #e2e8f0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .category-badge {
@@ -141,6 +157,7 @@
 .actions {
     display: flex;
     gap: 0.5rem;
+    flex-wrap: wrap;
 }
 
 .btn-edit, .btn-delete {

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from ..dependencies import get_db, get_current_user
+from ..dependencies import get_db, get_current_active_user
 from ..db import models
 from ..schemas import alerts as schemas
 from ..core import crud
@@ -13,16 +13,17 @@ router = APIRouter()
 @router.get("/", response_model=PaginatedResponse[schemas.AlertWithDetails])
 def read_alerts(
     status: Optional[str] = None,
+    search: Optional[str] = None,
     page: int = 1,
-    size: int = 20,
+    size: int = 10,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_active_user)
 ):
     # if current_user.role not in [models.Role.ADMIN, models.Role.MANAGER]:
     #     raise HTTPException(status_code=403, detail="Not authorized")
     
     skip = (page - 1) * size
-    db_alerts, total = crud.get_alerts(db, skip=skip, limit=size, status=status)
+    db_alerts, total = crud.get_alerts(db, skip=skip, limit=size, status=status, search=search)
     
     # Enhance alerts with details
     results = []
@@ -61,7 +62,7 @@ def read_alerts(
 def create_manual_alert(
     alert: schemas.AlertCreate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_active_user)
 ):
     if current_user.role not in [models.Role.ADMIN, models.Role.MANAGER]:
         raise HTTPException(status_code=403, detail="Not authorized")
@@ -72,7 +73,7 @@ def create_manual_alert(
 def resolve_alert(
     alert_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_active_user)
 ):
     if current_user.role not in [models.Role.ADMIN, models.Role.MANAGER]:
         raise HTTPException(status_code=403, detail="Not authorized")
@@ -86,7 +87,7 @@ def resolve_alert(
 def delete_alert(
     alert_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_active_user)
 ):
     if current_user.role != models.Role.ADMIN:
         raise HTTPException(status_code=403, detail="Only admins can delete alerts")
