@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 from .db import models
 from .db.database import engine
-from .routers import items, auth, users, audit, alerts, dashboard
+from .routers import items, auth, users, audit, alerts, dashboard, reports
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -32,3 +32,4 @@ app.include_router(items.router, prefix="/items", tags=["items"])
 app.include_router(audit.router, prefix="/audit-logs", tags=["audit"])
 app.include_router(alerts.router, prefix="/alerts", tags=["alerts"])
 app.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
+app.include_router(reports.router, prefix="/reports", tags=["reports"])

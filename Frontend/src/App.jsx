@@ -10,6 +10,7 @@ import Users from './pages/Users'
 import Alerts from './pages/Alerts'
 import AuditLogs from './pages/AuditLogs'
 import Dashboard from './pages/Dashboard'
+import Reports from './pages/Reports'
 
 function AppContent() {
   const location = useLocation();
@@ -63,6 +64,14 @@ function AppContent() {
             element={
               <ProtectedRoute adminOnly={true}>
                 <AuditLogs />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/reports" 
+            element={
+              <ProtectedRoute adminOnly={true}>
+                <Reports />
               </ProtectedRoute>
             } 
           />

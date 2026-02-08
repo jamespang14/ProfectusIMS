@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -7,11 +7,11 @@ import {
   LineElement,
   Title,
   Tooltip,
-  Legend,
-  TimeScale
+  Legend
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import api from '../api/axios';
+import AuthContext from '../context/AuthProvider';
 import './Dashboard.css';
 
 ChartJS.register(
@@ -25,25 +25,57 @@ ChartJS.register(
 );
 
 const Dashboard = () => {
+    const { isAdmin } = useContext(AuthContext);
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState(null);
+    const [activities, setActivities] = useState([]);
     const [error, setError] = useState('');
 
     useEffect(() => {
-        fetchStats();
+        fetchAllData();
     }, []);
 
-    const fetchStats = async () => {
+    const fetchAllData = async () => {
+        setLoading(true);
+        setError('');
         try {
-            setLoading(true);
-            const response = await api.get('/dashboard/stats');
-            setStats(response.data);
+            await Promise.all([
+                fetchStats(),
+                fetchActivity()
+            ]);
         } catch (err) {
-            setError('Failed to fetch dashboard stats');
             console.error(err);
+            // Error is handled in individual fetchers or here
         } finally {
             setLoading(false);
         }
+    };
+
+    const fetchStats = async () => {
+        try {
+            const response = await api.get('/dashboard/stats');
+            setStats(response.data);
+        } catch (err) {
+            console.error('Failed to fetch stats', err);
+            setError('Failed to load dashboard data');
+        }
+    };
+
+    const fetchActivity = async () => {
+        if (!isAdmin()) return;
+        try {
+            const response = await api.get('/audit-logs/', {
+                params: { page: 1, size: 5 }
+            });
+            setActivities(response.data.items);
+        } catch (err) {
+            console.error('Failed to fetch activity', err);
+            // Don't block whole dashboard if activity log fails
+        }
+    };
+
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleString();
     };
 
     if (loading) return <div className="loading">Loading dashboard...</div>;
@@ -52,7 +84,6 @@ const Dashboard = () => {
 
     // Prepare chart data
     const prepareChartData = () => {
-        // Collect all unique timestamps from all items
         const allTimestamps = new Set();
         stats.item_stats.forEach(item => {
             item.history.forEach(point => {
@@ -60,81 +91,27 @@ const Dashboard = () => {
             });
         });
         
-        // Convert to sorted array
         const labels = Array.from(allTimestamps).sort((a, b) => new Date(a) - new Date(b));
         
-        // Colors for the lines
         const colors = [
-            'rgb(255, 99, 132)', // Red
-            'rgb(53, 162, 235)', // Blue
-            'rgb(75, 192, 192)', // Teal
+            'rgb(255, 99, 132)',
+            'rgb(53, 162, 235)',
+            'rgb(75, 192, 192)',
         ];
         
-        const datasets = stats.item_stats.map((item, index) => {
-            // Map history to the global labels timeline
-            // Since we might have missing points, we need to handle that.
-            // But Chart.js line chart usually expects matching data points to labels.
-            // A better way given mixed timestamps is to use a linearly distributed x-axis if we had a time scale adapter,
-            // but for simplicity with CategoryScale, let's just map the history we have.
-            
-            // To make it look continuous, we can fill missing leading values with the first known value?
-            // Or just plot the points we have.
-            // Actually, for a multi-line chart with different timestamps, it's best to either:
-            // 1. Use 'time' scale (requires date adapter).
-            // 2. Or simplified: Just use the sequence of changes for each item? No, they won't align.
-            
-            // Let's stick to a simple representation:
-            // Just map the history points we have to x, y. 
-            // NOTE: Chart.js strict category scale might not perfectly permit "x/y" objects without a time scale.
-            // Let's try to pass the labels as just the index 1, 2, 3... or just use the local timestamps.
-            
-            // Alternative: Simply show the LAST N changes?
-            
-            // Let's try to just map the data points directly.
-            // If we use 'index' as labels.
-            
-            return {
-                label: item.title,
-                data: item.history.map(h => ({
-                    x: new Date(h.timestamp).toLocaleString(),
-                    y: h.quantity
-                })),
-                borderColor: colors[index % colors.length],
-                backgroundColor: colors[index % colors.length].replace('rgb', 'rgba').replace(')', ', 0.5)'),
-                tension: 0.1
-            };
-        });
-
         return {
-            // labels, // If we provide data as {x, y} we might not need explicit labels if we weren't using category scale.
-            // But we ARE using CategoryScale. To properly align, we really should have a unified set of labels.
             labels: labels.length > 0 ? labels : ['No Data'], 
             datasets: stats.item_stats.map((item, index) => {
-                // We need to map our history to the unified "labels" array.
-                // For each label (timestamp), find the value at that time.
-                // If no exact match, use the previous known value (step).
-                
                 const data = labels.map(label => {
-                    // Find the state at this timestamp
-                    // Exact match?
                     const match = item.history.find(h => new Date(h.timestamp).toLocaleString() === label);
                     if (match) return match.quantity;
                     
-                    // Previous known?
-                    // This is getting complex for Frontend.
-                    // Let's simplifying: Just plot the raw points and let Chart.js interpolation handle it?
-                    // No, Category scale requires matching.
-                    
-                    // Simple fallback: If match found, return it. If not, return null (gap) or previous.
-                    // Let's try returning the closest previous value.
-                    
-                    // Filter history for points <= label
                     const labelTime = new Date(label).getTime();
                     const previousPoints = item.history.filter(h => new Date(h.timestamp).getTime() <= labelTime);
                     if (previousPoints.length > 0) {
                         return previousPoints[previousPoints.length - 1].quantity;
                     }
-                    return null; // Should not happen if history includes current state and we sort right.
+                    return null;
                 });
 
                 return {
@@ -159,27 +136,17 @@ const Dashboard = () => {
             }
           },
           title: {
-            display: true,
-            text: 'Quantity Trends (Top 3 Active Items)',
-            color: '#e2e8f0'
+            display: false
           },
         },
         scales: {
             y: {
-                grid: {
-                    color: 'rgba(255, 255, 255, 0.1)'
-                },
-                ticks: {
-                    color: '#94a3b8'
-                }
+                grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                ticks: { color: '#94a3b8' }
             },
             x: {
-                grid: {
-                    color: 'rgba(255, 255, 255, 0.1)'
-                },
-                ticks: {
-                    color: '#94a3b8'
-                }
+                grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                ticks: { color: '#94a3b8' }
             }
         }
     };
@@ -190,6 +157,16 @@ const Dashboard = () => {
         <div className="dashboard-container">
             <div className="dashboard-header">
                 <h1>Dashboard</h1>
+                <button className="refresh-btn" onClick={fetchAllData} style={{
+                    background: 'rgba(255,255,255,0.1)',
+                    border: 'none',
+                    color: 'white',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '8px',
+                    cursor: 'pointer'
+                }}>
+                    Refresh
+                </button>
             </div>
 
             <div className="dashboard-content">
@@ -213,16 +190,67 @@ const Dashboard = () => {
                 </div>
 
                 <div className="chart-container">
-                    {stats.item_stats.length > 0 ? (
-                        <div className="chart-wrapper">
+                    <h3 style={{ color: '#e2e8f0', marginTop: 0, marginBottom: '1rem' }}>Quantity Trends (Top 3 Items)</h3>
+                    <div className="chart-wrapper">
+                        {stats.item_stats.length > 0 ? (
                             <Line options={options} data={chartData} />
-                        </div>
-                    ) : (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8' }}>
-                            Not enough data to display trends.
-                        </div>
-                    )}
+                        ) : (
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8' }}>
+                                Not enough data to display trends.
+                            </div>
+                        )}
+                    </div>
                 </div>
+
+                {isAdmin() && (
+                    <div className="activity-section">
+                        <h3>Recent Activity</h3>
+                        <div className="table-container">
+                            {activities.length > 0 ? (
+                                <table className="dashboard-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Action</th>
+                                            <th>Entity</th>
+                                            <th>ID</th>
+                                            <th>Details</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {activities.map(log => (
+                                            <tr key={log.id}>
+                                                <td>{formatDate(log.timestamp)}</td>
+                                                <td>
+                                                    <span style={{
+                                                        padding: '2px 8px',
+                                                        borderRadius: '4px',
+                                                        fontSize: '0.75rem',
+                                                        background: log.action === 'CREATE' ? 'rgba(34, 197, 94, 0.2)' : 
+                                                                    log.action === 'DELETE' ? 'rgba(239, 68, 68, 0.2)' : 
+                                                                    'rgba(59, 130, 246, 0.2)',
+                                                        color: log.action === 'CREATE' ? '#4ade80' : 
+                                                               log.action === 'DELETE' ? '#f87171' : 
+                                                               '#60a5fa'
+                                                    }}>
+                                                        {log.action}
+                                                    </span>
+                                                </td>
+                                                <td>{log.entity_type}</td>
+                                                <td>{log.entity_id}</td>
+                                                <td>{log.details || '-'}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            ) : (
+                                <div style={{ color: '#94a3b8', textAlign: 'center', padding: '1rem' }}>
+                                    No recent activity.
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
