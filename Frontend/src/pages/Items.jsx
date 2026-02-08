@@ -28,7 +28,7 @@ const Items = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
-    const pageSize = 20;
+    const pageSize = 10;
 
     useEffect(() => {
         fetchItems(currentPage);

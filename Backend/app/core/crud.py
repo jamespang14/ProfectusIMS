@@ -21,7 +21,7 @@ def get_item(db: Session, item_id: int):
 
 def get_items(db: Session, skip: int = 0, limit: int = 100):
     total = db.query(models.Item).count()
-    items = db.query(models.Item).offset(skip).limit(limit).all()
+    items = db.query(models.Item).order_by(models.Item.last_updated.desc()).offset(skip).limit(limit).all()
     return items, total
 
 def create_item(db: Session, item: schemas.ItemCreate):

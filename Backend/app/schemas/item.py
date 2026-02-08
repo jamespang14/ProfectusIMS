@@ -1,5 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel
+from datetime import datetime
 
 class ItemBase(BaseModel):
     title: str
@@ -24,6 +25,7 @@ class ItemQuantityUpdate(BaseModel):
 class Item(ItemBase):
     id: int
     quantity: int
+    last_updated: datetime
 
     class Config:
         from_attributes = True

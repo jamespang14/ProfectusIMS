@@ -66,7 +66,7 @@ import math
 @router.get("/", response_model=PaginatedResponse[schemas.Item])
 def read_items(
     page: int = 1, 
-    size: int = 20, 
+    size: int = 10, 
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_active_user)
 ):

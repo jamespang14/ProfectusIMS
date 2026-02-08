@@ -31,7 +31,7 @@ import math
 @router.get("/", response_model=PaginatedResponse[schemas.User])
 def read_users(
     page: int = 1, 
-    size: int = 20, 
+    size: int = 10, 
     db: Session = Depends(get_db), 
     current_user: models.User = Depends(get_current_active_user)
 ):

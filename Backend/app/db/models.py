@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, Enum, ForeignKey
+from sqlalchemy import Column, Integer, String, Enum, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 import enum
+from datetime import datetime
 from .database import Base
 
 class Role(str, enum.Enum):
@@ -29,11 +30,11 @@ class Item(Base):
     quantity = Column(Integer, default=0)
     price = Column(Integer, default=0)
     category = Column(String, index=True, default="Uncategorized")
+    last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # owner = relationship("User", back_populates="items")
 
-from sqlalchemy import DateTime
-from datetime import datetime
+
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"

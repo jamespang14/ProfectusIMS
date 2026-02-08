@@ -22,7 +22,7 @@ const Sidebar = () => {
     const fetchAlertCount = async () => {
         try {
             const response = await api.get('/alerts/', { params: { status: 'active' } });
-            setAlertCount(response.data.length);
+            setAlertCount(response.data.total);
         } catch (err) {
             console.error('Failed to fetch alert count', err);
         }
