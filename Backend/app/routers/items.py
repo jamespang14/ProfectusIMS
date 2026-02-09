@@ -40,10 +40,10 @@ def create_items_bulk(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_active_user)
 ):
-    if current_user.role != models.Role.ADMIN:
+    if current_user.role not in [models.Role.MANAGER, models.Role.ADMIN]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, 
-            detail="Admin access required"
+            detail="Manager or Admin access required"
         )
         
     db_items = crud.create_items_bulk(db=db, items=items)

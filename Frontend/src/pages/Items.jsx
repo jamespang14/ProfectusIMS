@@ -150,11 +150,10 @@ const Items = () => {
                 <h1>Inventory Items</h1>
                 {(isAdmin() || isManager()) && (
                     <div className="action-buttons" style={{ display: 'flex', gap: '1rem' }}>
-                        {isAdmin() && (
-                            <button className="btn-secondary" onClick={() => setShowBulkImportModal(true)}>
-                                📂 Bulk Import
-                            </button>
-                        )}
+                        <button className="btn-secondary" onClick={() => setShowBulkImportModal(true)}>
+                            📂 Bulk Import
+                        </button>
+                        
                         <button className="btn-primary" onClick={() => openModal()}>
                             + Add Item
                         </button>
