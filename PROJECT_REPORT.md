@@ -72,3 +72,51 @@ The database was designed with normalization and integrity in mind. Key relation
 *   **AI Forecasting:** Integrate ML models to predict stock depletion and automate reordering.
 *   **Unit test coverage:** Increase unit test coverage.
 *   **Crash reporting:** Implement crash reporting to identify and fix issues e.g. Sentry.
+
+
+## 5. DB diagram
+```mermaid
+erDiagram
+    USERS ||--o{ AUDIT_LOGS : "performs"
+    USERS ||--o{ ALERTS : "creates/resolves"
+    ITEMS ||--o{ ALERTS : "triggers"
+
+    USERS {
+        int id PK
+        string email UK
+        string hashed_password
+        enum role "admin, manager, viewer"
+    }
+
+    ITEMS {
+        int id PK
+        string title
+        string description
+        int quantity
+        int price
+        string category
+        datetime last_updated
+    }
+
+    AUDIT_LOGS {
+        int id PK
+        string action "CREATE, UPDATE, DELETE"
+        string entity_type "ITEM, USER"
+        int entity_id
+        int user_id FK
+        datetime timestamp
+        string details
+    }
+
+    ALERTS {
+        int id PK
+        int item_id FK
+        enum alert_type "low_stock, manual"
+        enum status "active, resolved"
+        string message
+        int created_by FK
+        datetime created_at
+        datetime resolved_at
+        int resolved_by FK
+    }
+```
