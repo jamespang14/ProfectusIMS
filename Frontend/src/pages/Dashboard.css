@@ -98,7 +98,8 @@
     flex: 1;
     position: relative;
     width: 100%;
-    min-height: 0; /* Important for flex child to shrink */
+    min-height: 0;
+    overflow: hidden;
 }
 
 /* Activity Log Section */

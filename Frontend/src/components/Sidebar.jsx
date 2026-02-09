@@ -5,11 +5,10 @@ import api from '../api/axios';
 import './Sidebar.css';
 import TokenTimer from './TokenTimer';
 
-const Sidebar = () => {
+const Sidebar = ({ isCollapsed, toggleCollapse }) => {
     const { user, logout, isAdmin } = useContext(AuthContext);
     const navigate = useNavigate();
     const location = useLocation();
-    const [isCollapsed, setIsCollapsed] = useState(false);
     const [alertCount, setAlertCount] = useState(0);
 
     useEffect(() => {
@@ -53,7 +52,7 @@ const Sidebar = () => {
                 </h2>
                 <button 
                     className="collapse-btn" 
-                    onClick={() => setIsCollapsed(!isCollapsed)}
+                    onClick={toggleCollapse}
                     aria-label="Toggle sidebar"
                 >
                     {isCollapsed ? '→' : '←'}

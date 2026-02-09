@@ -20,6 +20,7 @@ export const AuthProvider = ({ children }) => {
     }, [token]);
 
     const fetchUserDetails = async () => {
+        setLoading(true);
         try {
             const response = await api.get('/users/me');
             setUser(response.data);
@@ -27,6 +28,8 @@ export const AuthProvider = ({ children }) => {
             console.error("Failed to fetch user details", error);
             // If fetching user fails, logout
             logout();
+        } finally {
+            setLoading(false);
         }
     };
 
