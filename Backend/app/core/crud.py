@@ -93,7 +93,7 @@ def update_item(db: Session, item_id: int, item_update: schemas.ItemUpdate):
 
     return db_item
 
-def update_item_quantity(db: Session, item_id: int, quantity: int):
+def update_item_quantity(db: Session, item_id: int, quantity: int, user_id: int):
     db_item = get_item(db, item_id)
     if not db_item:
         return None
@@ -109,7 +109,7 @@ def update_item_quantity(db: Session, item_id: int, quantity: int):
         action="UPDATE",
         entity_type="ITEM",
         entity_id=db_item.id,
-        user_id=1, # Default system/admin user
+        user_id=user_id,
         details=f"Updated quantity to {quantity}"
     ))
     

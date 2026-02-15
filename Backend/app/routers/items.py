@@ -131,7 +131,7 @@ def update_quantity(
             status_code=status.HTTP_403_FORBIDDEN, 
             detail="Manager or Admin access required"
         )
-    db_item = crud.update_item_quantity(db, item_id=item_id, quantity=quantity_update.quantity)
+    db_item = crud.update_item_quantity(db, item_id=item_id, quantity=quantity_update.quantity, user_id=current_user.id)
     if db_item is None:
         raise HTTPException(status_code=404, detail="Item not found")
         
