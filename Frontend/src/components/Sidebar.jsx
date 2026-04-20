@@ -45,7 +45,7 @@ const Sidebar = ({ isCollapsed, toggleCollapse }) => {
                 <h2 className="sidebar-brand">
                     {!isCollapsed && (
                         <>
-                            Profectus<span className="brand-accent">IMS</span>
+                            Demo<span className="brand-accent">IMS</span>
                         </>
                     )}
                     {isCollapsed && <span className="brand-accent">P</span>}

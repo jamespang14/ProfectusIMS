@@ -25,7 +25,7 @@ const Login = () => {
         <div className="login-container">
             <div className="login-card">
                 <div className="brand-header">
-                    <h1>Profectus<span className="brand-accent">IMS</span></h1>
+                    <h1>Demo<span className="brand-accent">IMS</span></h1>
                     <p>Inventory Management System</p>
                 </div>
                 
